@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" group="mad-practical-6-data-and-file-storage-joelchunsheng/app" />
+      <module fileurl="file://$PROJECT_DIR$/mad-practical-6-data-and-file-storage-joelchunsheng.iml" filepath="$PROJECT_DIR$/mad-practical-6-data-and-file-storage-joelchunsheng.iml" group="mad-practical-6-data-and-file-storage-joelchunsheng" />
+    </modules>
+  </component>
+</project>
