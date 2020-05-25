@@ -1,8 +1,9 @@
-package sg.edu.np.WhackAMole;
+package sg.edu.np.WhackAMole.Game;
 
-import android.content.DialogInterface;
+import android.content.Context;
 import android.content.Intent;
-import android.support.v7.app.AlertDialog;
+import android.content.SharedPreferences;
+import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,12 +13,18 @@ import android.widget.TextView;
 
 import java.util.Random;
 
+import sg.edu.np.WhackAMole.Level.Levels;
+import sg.edu.np.WhackAMole.LevelDataHandler;
+import sg.edu.np.WhackAMole.R;
+
 public class MainActivity extends AppCompatActivity {
-    public  Button ButtonLeft;
-    public  Button ButtonMiddle;
-    public  Button ButtonRight;
+    public  Button ButtonLeft, ButtonMiddle, ButtonRight;
     public TextView scoreTxtView;
+    public Button backBtn;
+    CountDownTimer myCountDown;
     private static final String TAG = "Whack-A-Mole 1.0";
+    public int previousScore, timer;
+    String username, level;
 
     String selectedValue;
     int score = 0;
@@ -29,10 +36,23 @@ public class MainActivity extends AppCompatActivity {
 
         Log.v(TAG, "Finished Pre-Initialisation!");
 
+        SharedPreferences sharedPreferences = getSharedPreferences("sg.edu.np.WhackAMole.User", Context.MODE_PRIVATE);
+        username = sharedPreferences.getString("username", "");
+
         ButtonLeft = (Button) findViewById(R.id.button1);
         ButtonMiddle = (Button) findViewById(R.id.button2);
         ButtonRight = (Button) findViewById(R.id.button3);
         scoreTxtView = (TextView) findViewById(R.id.scoreTxtView);
+        backBtn = (Button) findViewById(R.id.bBackBtn);
+
+        backBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent levelActivity = new Intent(MainActivity.this, Levels.class);
+                startActivity(levelActivity);
+                finish();
+            }
+        });
 
         scoreTxtView.setText(String.valueOf(score));
 
@@ -66,6 +86,13 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
         setNewMole();
         Log.v(TAG, "Starting GUI!");
+
+        Intent receivingEnd = getIntent();
+        timer = receivingEnd.getIntExtra("timer", 1000);
+        previousScore = receivingEnd.getIntExtra("highscore", 0);
+        level = receivingEnd.getStringExtra("level");
+
+        placeMoleTimer(timer);
     }
     @Override
     protected void onPause(){
@@ -89,8 +116,10 @@ public class MainActivity extends AppCompatActivity {
             scoreTxtView.setText(String.valueOf(score));
             setNewMole();
 
-            if (score == 10){
-                nextLevelQuery();
+            if (score > previousScore){
+                //update score
+                LevelDataHandler levelDataHandler = new LevelDataHandler(this, null, null, 1);
+                levelDataHandler.updateLevel(username, level, String.valueOf(score));
             }
         }
         // If Incorrect button pressed
@@ -102,34 +131,6 @@ public class MainActivity extends AppCompatActivity {
             Log.v(TAG, "Missed, score deducted!");
         }
 
-    }
-
-    private void nextLevelQuery(){
-        Log.v(TAG, "Advance option given to user!");
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-        builder.setTitle("Warning! Insane Wake-A-Mole Incoming!");
-        builder.setMessage("Would you like to advance to advance mode?");
-        builder.setCancelable(true);
-        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener(){
-            public void onClick(DialogInterface dialog, int id){
-                Log.v(TAG, "User accepts!");
-                nextLevel();
-            }
-        });
-        builder.setNegativeButton("No", new DialogInterface.OnClickListener(){
-            public void onClick(DialogInterface dialog, int id){
-                Log.v(TAG, "User decline!");
-            }
-        });
-        builder.create().show();
-    }
-
-    private void nextLevel(){
-        /* Launch advanced page */
-        Intent intent = new Intent(MainActivity.this, Main2Activity.class);
-        intent.putExtra("Score", score);
-        startActivity(intent);
     }
 
     private void setNewMole() {
@@ -152,4 +153,21 @@ public class MainActivity extends AppCompatActivity {
             ButtonRight.setText("*");
         }
     }
+
+    private void placeMoleTimer(final int timer){
+        myCountDown = new CountDownTimer(10000, timer){
+            public void onTick(long millisUntilFinished){
+                int seconds = (int) millisUntilFinished/1000;
+                setNewMole();
+                Log.v(TAG, "New Mole Location");
+            }
+
+            public void onFinish(){
+                placeMoleTimer(timer);
+            }
+        };
+        myCountDown.start();
+
+    }
+
 }

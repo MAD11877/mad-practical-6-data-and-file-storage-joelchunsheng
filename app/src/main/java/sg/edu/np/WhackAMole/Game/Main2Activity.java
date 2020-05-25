@@ -1,6 +1,8 @@
-package sg.edu.np.WhackAMole;
+package sg.edu.np.WhackAMole.Game;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -11,18 +13,23 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
+
+import sg.edu.np.WhackAMole.Level.Levels;
+import sg.edu.np.WhackAMole.LevelDataHandler;
+import sg.edu.np.WhackAMole.R;
 
 public class Main2Activity extends AppCompatActivity {
-    int advancedScore;
+    int advancedScore = 0;
     CountDownTimer myCountDown;
     TextView scoreTxtView;
     String selectedValue;
+    Button backBtn;
+    public int previousScore, timer;
+    String username, level;
 
     private static final String TAG = "Whack-A-Mole 2.0";
 
-    private void readyTimer(){
+    private void readyTimer(final int timer){
         myCountDown = new CountDownTimer(10000, 1000){
             public void onTick(long millisUntilFinished){
                 int seconds = (int) millisUntilFinished/1000;
@@ -33,15 +40,15 @@ public class Main2Activity extends AppCompatActivity {
             public void onFinish(){
                 Toast.makeText(getApplicationContext(), "GO!" ,Toast.LENGTH_SHORT).show();
                 myCountDown.cancel();
-                placeMoleTimer();
+                placeMoleTimer(timer);
             }
         };
         myCountDown.start();
 
     }
 
-    private void placeMoleTimer(){
-        myCountDown = new CountDownTimer(10000, 1000){
+    private void placeMoleTimer(final int timer){
+        myCountDown = new CountDownTimer(10000, timer){
             public void onTick(long millisUntilFinished){
                 int seconds = (int) millisUntilFinished/1000;
                 setNewMole();
@@ -49,7 +56,7 @@ public class Main2Activity extends AppCompatActivity {
             }
 
             public void onFinish(){
-                placeMoleTimer();
+                placeMoleTimer(timer);
             }
         };
         myCountDown.start();
@@ -73,9 +80,20 @@ public class Main2Activity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
 
-        Intent receivingEnd = getIntent();
-        advancedScore = receivingEnd.getIntExtra("Score", 0);
-        Log.v(TAG, "Current User Score: " + String.valueOf(advancedScore));
+        SharedPreferences sharedPreferences = getSharedPreferences("sg.edu.np.WhackAMole.User", Context.MODE_PRIVATE);
+        username = sharedPreferences.getString("username", "");
+
+        backBtn = (Button) findViewById(R.id.aBackBtn);
+
+        backBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent levelActivity = new Intent(Main2Activity.this, Levels.class);
+                startActivity(levelActivity);
+                finish();
+            }
+        });
+
 
         scoreTxtView = (TextView) findViewById(R.id.advanceTextView);
         scoreTxtView.setText(String.valueOf(advancedScore));
@@ -98,7 +116,11 @@ public class Main2Activity extends AppCompatActivity {
     @Override
     protected void onStart(){
         super.onStart();
-        readyTimer();
+        Intent receivingEnd = getIntent();
+        timer = receivingEnd.getIntExtra("timer", 1);
+        previousScore = receivingEnd.getIntExtra("highscore", 0);
+        level = receivingEnd.getStringExtra("level");
+        readyTimer(timer);
     }
 
     private void doCheck(Button checkButton)
@@ -109,6 +131,15 @@ public class Main2Activity extends AppCompatActivity {
             Log.v(TAG, "Hit, score added!");
             advancedScore += 1;
             scoreTxtView.setText(String.valueOf(advancedScore));
+
+            if (advancedScore > previousScore){
+                //update score
+                Log.v(TAG, String.valueOf(advancedScore));
+                Log.v(TAG, String.valueOf(username));
+                Log.v(TAG, String.valueOf(level));
+                LevelDataHandler levelDataHandler = new LevelDataHandler(this, null, null, 1);
+                levelDataHandler.updateLevel(username, level, String.valueOf(advancedScore));
+            }
 
         }
         // If Incorrect button pressed
@@ -124,12 +155,17 @@ public class Main2Activity extends AppCompatActivity {
     public void setNewMole()
     {
         Random ran = new Random();
-        int randomLocation = ran.nextInt(9);
+        int randomLocation1 = ran.nextInt(9);
+        int randomLocation2 = ran.nextInt(9);
+
+        while (randomLocation1 == randomLocation2){
+            randomLocation2 = ran.nextInt(9);
+        }
 
         int index = 1;
         for (final int id : BUTTON_IDS){
             Button button = (Button) findViewById(id);
-            if (randomLocation+1 == index){
+            if (randomLocation1+1 == index || randomLocation2+1 == index){
                 button.setText("*");
             }
             else{
@@ -139,5 +175,7 @@ public class Main2Activity extends AppCompatActivity {
         }
         index=1;
     }
+
+
 }
 
