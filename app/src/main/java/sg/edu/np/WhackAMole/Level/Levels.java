@@ -34,7 +34,6 @@ public class Levels extends AppCompatActivity {
             public void onClick(View v) {
                 Intent loginActivity = new Intent(Levels.this, Login.class);
                 startActivity(loginActivity);
-                finish();
             }
         });
 

@@ -77,6 +77,8 @@ public class Login extends AppCompatActivity {
         UserModel userModel = userDataHandler.findUser(usernameText);
 
         if(userModel!=null){
+            Log.i("Login", userModel.getPassword());
+            Log.i("Login", passwordText);
             //compare password
             if (userModel.getPassword().equals(passwordText)){
                 Log.i("Login", "Password Match");

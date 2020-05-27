@@ -50,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent levelActivity = new Intent(MainActivity.this, Levels.class);
                 startActivity(levelActivity);
-                finish();
             }
         });
 
